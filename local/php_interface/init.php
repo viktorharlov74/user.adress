@@ -29,10 +29,10 @@ function HbUserAddressUpdate(Entity\Event $event)
     $userID = $arFields['UF_USER_ID']['VALUE'];
     $allParameters = $event->getParameters();
     $cacheObj = \Bitrix\Main\Data\Cache::createInstance();
-    $baseCashePath = "/s1/viktor/user.address/";
+    $baseCachePath = "/s1/viktor/user.address/";
     if ($userID) {
-        $baseCashePath .= md5($userID);
-        $cacheObj->clearCache($baseCashePath);
+        $baseCachePath .= md5($userID);
+        $cacheObj->clearCache($baseCachePath);
         $event->getEntity()->cleanCache();
     } elseif ($allParameters['id']['ID']) {
         try {
@@ -52,8 +52,8 @@ function HbUserAddressUpdate(Entity\Event $event)
         ]);
         $arData = $arDataObj->fetch();
         if ($arData['UF_USER_ID']) {
-            $baseCashePath .= md5($arData['UF_USER_ID']);
-            $cacheObj->clearCache($baseCashePath);
+            $baseCachePath .= md5($arData['UF_USER_ID']);
+            $cacheObj->clearCache($baseCachePath);
             $event->getEntity()->cleanCache();
         }
     }

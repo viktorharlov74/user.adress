@@ -106,15 +106,15 @@ class UserAddress extends CBitrixComponent
         $nav->initFromUri();
         $this->nav = $nav;
         $this->arParams['Nav'] = $nav;
-        $baseCashePath = $this->getCashePathFolder($userID);
-        $bitrixCashePath = \Bitrix\Main\Data\ManagedCache::getCompCachePath($baseCashePath);
+        $baseCachePath = $this->getCashePathFolder($userID);
+        $beatrixCachePath = \Bitrix\Main\Data\ManagedCache::getCompCachePath($baseCachePath);
 
         /**
          * Сделал такую логику кеша сознательно. Например для того, чтобы при изменнии элемента у пользователя
          * можно было отчищать только лишь кеш конкретного пользователя.
          * В теории можно было оставить просто управляемый кеш ORM запроса
          */
-        if ($this->startResultCache($this->arParams['CACHE_TIME'], $this->arParams, $bitrixCashePath)) {
+        if ($this->startResultCache($this->arParams['CACHE_TIME'], $this->arParams, $beatrixCachePath)) {
             $this->prepareResult();
             $this->includeComponentTemplate();
         }
