@@ -212,23 +212,4 @@ class UserAddress extends CBitrixComponent
             $arResult['Nav'] = $nav;
         }
     }
-
-    /**
-     * Код для генерации тестовых данных в справочник
-     */
-    public static function migrationDataExample()
-    {
-        global $USER;
-        $entityHL = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity('HbUserAddress');
-        $entityClass = $entityHL->getDataClass();
-        for ($i = 0; $i < 100; $i++) {
-            $result = $entityClass::add(array(
-                'UF_USER_ID' => ($i % 3 == 0) ? 1 :  $USER->GetID(),
-                'UF_ADDRESS' => 'г. Новый адресс ул. Числа  -  ' . $i,
-                'UF_ACTIVE' => ($i % 3 == 0) ? 0 : 1
-            ));
-            echo "Строка добавлена " . (($result->isSuccess()) ? "Успешно" : "с ошибкой") . "<br>";
-        }
-    }
-
 }
