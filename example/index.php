@@ -4,7 +4,7 @@ $APPLICATION->SetTitle("Пример использования с гридам�
 ?>
 <?php
 $APPLICATION->IncludeComponent(
-    "viktor:user.address",
+    "Viktor:user.address",
     "",
     Array(
         "SHOW_ONLY_ACTIVE" => 'Y',

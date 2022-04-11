@@ -1,24 +1,23 @@
 <? if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
-use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 
 /**
  * @var array $templateData
- * @var array $arResult
  * @var array $arParams
+ * @var array $arResult
+ * @var array $component
  * @var string $templateFolder
  * @global CMain $APPLICATION
- * @var $component
  */
-
+//Гриды добавил в эпилог а не в шаблон компонента, так как при включенном кешировании и при установленном режиме AJAX_MODE = Y
 if ($arResult['USER_ID'] && empty($arResult['ERRORS'])) {
     if ($arResult['ITEMS_GRID']) {
         $APPLICATION->IncludeComponent(
             'bitrix:main.ui.grid',
             '',
             [
-                'GRID_ID' => 'bitrix_example_grid',
+                'GRID_ID' => $arResult['GRID_ID'],
                 'COLUMNS' => [
                     ['id' => 'ID', 'name' => 'ID', 'sort' => 'DATE', 'default' => true],
                     ['id' => 'UF_USER_ID', 'name' => 'ID пользователя', 'sort' => 'DATE', 'default' => true],
@@ -50,7 +49,7 @@ if ($arResult['USER_ID'] && empty($arResult['ERRORS'])) {
                 'ALLOW_HORIZONTAL_SCROLL' => true,
                 'ALLOW_SORT' => true,
                 'ALLOW_PIN_HEADER' => true,
-                'AJAX_OPTION_HISTORY' => 'Y'
+                'AJAX_OPTION_HISTORY' => 'N'
             ],
             $component
         );
@@ -62,8 +61,3 @@ if ($arResult['USER_ID'] && empty($arResult['ERRORS'])) {
         <?php
     }
 }
-
-
-
-
-

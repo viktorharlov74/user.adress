@@ -2,31 +2,26 @@
 
 defined('B_PROLOG_INCLUDED') && B_PROLOG_INCLUDED === true || die();
 
-use Bitrix\Highloadblock\HighloadBlockTable as HLBT;
-use Bitrix\Main\Grid\Options as GridOptions;
+use Bitrix\Highloadblock\HighloadBlockTable as HightloadLBT;
 use Bitrix\Main,
     Bitrix\Main\Localization\Loc,
     Bitrix\Main\ObjectNotFoundException,
-    Bitrix\Iblock,
-    Bitrix\Main\Context,
-    Bitrix\Iblock\IblockTable;
-use Bitrix\Main\Page\Asset;
-use Bitrix\Main\SystemException;
+    Bitrix\Main\Context;
 use Bitrix\Main\UI\PageNavigation;
 use \Bitrix\Main\Data\Cache;
 
 
 class UserAddress extends CBitrixComponent
 {
-    const TABLE_NAME_ADDRESS = 'HbTest';
+    const TABLE_NAME_ADDRESS = 'HbUserAddress';
     const NAV_PARAMS_ID = 'nav-address';
     const BASE_CASHE_FOLDER_PATH = '/viktor/user.address/';
     const GRID_ID = 'table_list';
     const ARR_ERRORS = [
         'failHLTABLE' => "Не найден нужный HighLoadBlock с адресами",
     ];
-    const CACHE_TIME = 36000;
-    const PAGE_SIZE_START = 4;
+    const CACHE_TIME_DEFAULT = 36000;
+    const PAGE_SIZE_DEFAULT = 10;
     public $nav;
     protected $arFilter = array();
 
@@ -42,7 +37,7 @@ class UserAddress extends CBitrixComponent
             if (defined('CACHE_TIME')) {
                 $params['CACHE_TIME'] = CACHE_TIME;
             } else {
-                $params['CACHE_TIME'] = 3600;
+                $params['CACHE_TIME'] = self::CACHE_TIME_DEFAULT;
             }
             $params['CACHE_GROUPS'] = "Y";
         }
@@ -77,7 +72,8 @@ class UserAddress extends CBitrixComponent
     }
 
     /**
-     * Определяем папку Кеширования для пользователя
+     * Определяем папку Кеширования для пользователя.
+     * У каждого пользователя будет свой кеш, что даёт нам возможности чистить кеш для конретного пользователя при изменении элементов.
      * @param $userID
      * @return string
      */
@@ -106,13 +102,19 @@ class UserAddress extends CBitrixComponent
         $this->arParams['USER_ID'] = $userID;
         $nav = new \Bitrix\Main\UI\PageNavigation(self::NAV_PARAMS_ID);
         $nav->allowAllRecords(true);
-        $nav->setPageSize(self::PAGE_SIZE_START);
+        $nav->setPageSize(self::PAGE_SIZE_DEFAULT);
         $nav->initFromUri();
         $this->nav = $nav;
         $this->arParams['Nav'] = $nav;
         $baseCashePath = $this->getCashePathFolder($userID);
         $bitrixCashePath = \Bitrix\Main\Data\ManagedCache::getCompCachePath($baseCashePath);
-        if ($this->startResultCache(3600, $this->arParams, $bitrixCashePath)) {
+
+        /**
+         * Сделал такую логику кеша сознательно. Например для того, чтобы при изменнии элемента у пользователя
+         * можно было отчищать только лишь кеш конкретного пользователя.
+         * В теории можно было оставить просто управляемый кеш ORM запроса
+         */
+        if ($this->startResultCache($this->arParams['CACHE_TIME'], $this->arParams, $bitrixCashePath)) {
             $this->prepareResult();
             $this->includeComponentTemplate();
         }
@@ -130,9 +132,11 @@ class UserAddress extends CBitrixComponent
     public function getDataFromHL($params)
     {
         try {
-            $entityHL = HLBT::compileEntity(self::TABLE_NAME_ADDRESS);
+            $entityHL = HightloadLBT::compileEntity(self::TABLE_NAME_ADDRESS);
         } catch (Exception $e) {
+
             $this->arResult['ERRORS'][] = self::ARR_ERRORS['failHLTABLE'];
+            $this->abortResultCache();
             return [];
         }
         $entityClass = $entityHL->getDataClass();
@@ -192,9 +196,9 @@ class UserAddress extends CBitrixComponent
                 ],
                 'count_total' => 1,
             ];
-            if ($this->arParams['CACHE_TIME']) {
-                $params['cache']['ttl'] = $this->arParams['CACHE_TIME'];
-            }
+//            if ($this->arParams['CACHE_TIME']) {
+//                $params['cache']['ttl'] = $this->arParams['CACHE_TIME'];
+//            }
             if ($this->arParams['SHOW_ONLY_ACTIVE'] == 'Y') {
                 $params['filter']['UF_ACTIVE'] = ($this->arParams['SHOW_ONLY_ACTIVE'] == 'Y') ? true : false;
             }
@@ -204,8 +208,26 @@ class UserAddress extends CBitrixComponent
                 $arResult['ITEMS_GRID'] = $this->generateGridDataFormat($arResult['DATA']);
             }
             $arResult['CurrentPage'] = $nav->getCurrentPage();
-            $arResult['GRID_ID'] = self::GRID_ID;;
+            $arResult['GRID_ID'] = self::GRID_ID;
             $arResult['Nav'] = $nav;
+        }
+    }
+
+    /**
+     * Код для генерации тестовых данных в справочник
+     */
+    public static function migrationDataExample()
+    {
+        global $USER;
+        $entityHL = \Bitrix\Highloadblock\HighloadBlockTable::compileEntity('HbUserAddress');
+        $entityClass = $entityHL->getDataClass();
+        for ($i = 0; $i < 100; $i++) {
+            $result = $entityClass::add(array(
+                'UF_USER_ID' => ($i % 3 == 0) ? 1 :  $USER->GetID(),
+                'UF_ADDRESS' => 'г. Новый адресс ул. Числа  -  ' . $i,
+                'UF_ACTIVE' => ($i % 3 == 0) ? 0 : 1
+            ));
+            echo "Строка добавлена " . (($result->isSuccess()) ? "Успешно" : "с ошибкой") . "<br>";
         }
     }
 

@@ -32,7 +32,9 @@ if ($arResult['ERRORS']) {
 if (!$arResult['USER_ID']) {
     ?>
     <div class="data-not-found ">
-        <?=Loc::getMessage('USER_NOT_AUTH');?>
+        <p>
+            <?= Loc::getMessage('USER_NOT_AUTH'); ?>
+        </p>
     </div>
     <?
 }
